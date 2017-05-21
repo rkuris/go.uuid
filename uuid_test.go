@@ -495,6 +495,20 @@ func TestNullUUIDScanNil(t *testing.T) {
 	}
 }
 
+func TestTimeErrors(t *testing.T) {
+	u := NewV2(DomainPerson)
+
+	_, err := u.Time()
+	if err == nil {
+		t.Errorf("Expected error from V2 UUID: %s", u)
+	}
+
+	_, err = u.Nanos()
+	if err == nil {
+		t.Errorf("Expected error from V2 UUID: %s", u)
+	}
+}
+
 func TestNewV1(t *testing.T) {
 	u := NewV1()
 
@@ -513,6 +527,31 @@ func TestNewV1(t *testing.T) {
 		t.Errorf("UUIDv1 generated two equal UUIDs: %s and %s", u1, u2)
 	}
 
+	n1, err := u1.Nanos()
+	if err != nil {
+		t.Errorf("UUIDv1 Nanos error: %s %v", u1, err)
+	}
+	n2, err := u2.Nanos()
+	if err != nil {
+		t.Errorf("UUIDv1 Nanos error: %s %v", u2, err)
+	}
+
+	if n1 > n2 {
+		t.Errorf("UUIDv1 generated older UUID: %s > %s", u1, u2)
+	}
+
+	t1, err := u1.Time()
+	if err != nil {
+		t.Errorf("UUIDv1 Time error: %s %v", u1, err)
+	}
+	t2, err := u2.Time()
+	if err != nil {
+		t.Errorf("UUIDv1 Time error: %s %v", u2, err)
+	}
+	if t1.After(t2) {
+		t.Errorf("UUIDv1 time comparison failed: %s (%s) > %s (%s)", u1, t1, u2, t2)
+	}
+
 	oldFunc := epochFunc
 	epochFunc = func() uint64 { return 0 }
 
@@ -521,6 +560,19 @@ func TestNewV1(t *testing.T) {
 
 	if Equal(u3, u4) {
 		t.Errorf("UUIDv1 generated two equal UUIDs: %s and %s", u3, u4)
+	}
+
+	n3, err := u3.Nanos()
+	if err != nil {
+		t.Errorf("UUIDv1 Nanos error: %s %v", u3, err)
+	}
+	n4, err := u4.Nanos()
+	if err != nil {
+		t.Errorf("UUIDv1 Nanos error: %s %v", u4, err)
+	}
+
+	if n3 != n4 {
+		t.Errorf("UUIDv1 nanos expected equal: %s (%d) and %s (%d)", u3, n3, u4, n4)
 	}
 
 	epochFunc = oldFunc
